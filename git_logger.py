@@ -19,6 +19,7 @@ import re
 # 全局常量：日志Excel文件路径
 LOG_FILE = 'commit_log.xlsx'
 
+# 这里新加一行代码测试
 
 def get_commit_info():
     """
