@@ -79,18 +79,20 @@ def update_excel(data):
     @exception  Exception             pandas写入Excel时的其他异常（如格式错误）
     @note       依赖openpyxl库处理.xlsx格式，需提前安装
     """
-    if os.path.exists(LOG_FILE):
-        # 读取已有文件并追加新数据
-        df = pd.read_excel(LOG_FILE)
-        new_df = pd.DataFrame([data])
-        df = pd.concat([df, new_df], ignore_index=True)
-    else:
-        # 创建新的DataFrame
-        df = pd.DataFrame([data])
+    print(f"Updating Excel with: {data}")  # 打印数据
+    try:
+        if os.path.exists(LOG_FILE):
+            df = pd.read_excel(LOG_FILE)
+            print(f"Existing data: {df}")  # 打印现有的Excel数据
+            new_df = pd.DataFrame([data])
+            df = pd.concat([df, new_df], ignore_index=True)
+        else:
+            df = pd.DataFrame([data])
 
-    # 写入Excel文件（忽略索引）
-    df.to_excel(LOG_FILE, index=False)
-    print(f"Commit log updated: {data}")
+        df.to_excel(LOG_FILE, index=False)
+        print(f"Commit log updated: {data}")
+    except Exception as e:
+        print(f"Error writing to Excel: {e}")
 
 
 if __name__ == '__main__':
