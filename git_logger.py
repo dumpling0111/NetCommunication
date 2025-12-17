@@ -60,19 +60,28 @@ def get_commit_info():
 
 
 def update_excel(data):
-    print(f"Updating Excel with: {data}")  # 调试输出
-    try:
-        if os.path.exists(LOG_FILE):
-            df = pd.read_excel(LOG_FILE)
-            new_df = pd.DataFrame([data])
-            df = pd.concat([df, new_df], ignore_index=True)
-        else:
-            df = pd.DataFrame([data])
+    """
+    @brief      将提交信息写入/追加到Excel日志文件
+    @details    如果文件已存在则追加新行，不存在则创建新文件；
+                写入时自动忽略DataFrame索引，保证Excel格式整洁
+    @param      data    dict    由get_commit_info()返回的提交信息字典
+    @exception  FileNotFoundError    Excel文件路径不存在（权限/路径错误）
+    @exception  PermissionError      无Excel文件写入权限
+    @exception  Exception             pandas写入Excel时的其他异常（如格式错误）
+    @note       依赖openpyxl库处理.xlsx格式，需提前安装
+    """
+    if os.path.exists(LOG_FILE):
+        # 读取已有文件并追加新数据
+        df = pd.read_excel(LOG_FILE)
+        new_df = pd.DataFrame([data])
+        df = pd.concat([df, new_df], ignore_index=True)
+    else:
+        # 创建新的DataFrame
+        df = pd.DataFrame([data])
 
-        df.to_excel(LOG_FILE, index=False)
-        print(f"Commit log updated: {data}")
-    except Exception as e:
-        print(f"Error writing to Excel: {e}")
+    # 写入Excel文件（忽略索引）
+    df.to_excel(LOG_FILE, index=False)
+    print(f"Commit log updated: {data}")
 
 
 if __name__ == '__main__':
