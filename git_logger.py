@@ -19,19 +19,17 @@ import re
 # 全局常量：日志Excel文件路径
 LOG_FILE = os.path.join(os.getcwd(), 'commit_log.xlsx')  # 写入当前工作目录
 
-# 这里新加一行代码测试  修改修改
-
-
 def get_commit_info():
     """
     @brief      获取Git仓库最新一次提交的核心信息
-    @details    执行Git命令提取最新Commit Hash、提交作者、新增代码行数，
-                通过正则表达式解析git show --stat的输出结果
+    @details    执行Git命令提取最新Commit Hash、提交作者、新增代码行数，提交内容，修改的文件夹等
     @return     dict    包含提交信息的字典，键说明：
                         - Timestamp: 当前时间戳（格式：YYYY-MM-DD HH:MM:SS）
                         - Commit Hash: 完整的Commit Hash字符串
                         - User: 提交作者名称
                         - Added Lines: 本次提交新增的代码行数（int）
+                        - Commit Message: 提交内容
+                        - Modified Files: 修改的文件列表
     @exception  subprocess.CalledProcessError  Git命令执行失败（如非Git仓库、命令错误）
     @exception  re.error                      正则表达式解析失败
     @exception  Exception                     其他未知异常（如编码解析失败）
@@ -45,17 +43,28 @@ def get_commit_info():
     # 获取提交的文件变更统计信息
     stats = subprocess.check_output(['git', 'show', '--stat', 'HEAD']).decode().strip()
 
+    # 获取提交内容（提交信息）
+    commit_message = subprocess.check_output(['git', 'log', '-1', '--pretty=%B']).decode().strip()
+
     # 正则提取新增行数（兼容单复数：insertion/insertions）
     added_lines = 0
     match = re.search(r'(\d+) insertions?\(\+\)', stats)
     if match:
         added_lines = int(match.group(1))
 
+    # 获取修改的文件夹和文件
+    modified_files = []
+    file_match = re.findall(r'(\S+)\s+\|', stats)
+    if file_match:
+        modified_files = file_match
+
     return {
         'Timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'Commit Hash': commit_hash,
         'User': author,
-        'Added Lines': added_lines
+        'Added Lines': added_lines,
+        'Commit Message': commit_message,
+        'Modified Files': ', '.join(modified_files)  # 文件夹和文件列表，以逗号分隔
     }
 
 
